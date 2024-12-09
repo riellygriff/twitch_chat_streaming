@@ -5,19 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "adbc-driver-postgresql>=1.2.0",
     "altair>=5.4.1",
-    "arrow-odbc>=8.0.1",
-    "connectorx>=0.4.0",
-    "duckdb>=1.1.3",
     "fastapi[standard]>=0.115.4",
     "flask>=3.0.3",
     "marimo>=0.9.17",
     "polars>=1.12.0",
     "psycopg>=3.2.3",
+    "pulumi-gcp>=8.9.3",
+    "pulumi>=3.140.0",
     "pyarrow>=18.0.0",
     "python-dotenv>=1.0.1",
     "questdb>=2.0.3",
     "requests>=2.32.3",
     "twitchapi>=4.3.1",
+    "pulumi-docker>=4.5.7",
+    "google-cloud-secret-manager>=2.21.1",
 ]

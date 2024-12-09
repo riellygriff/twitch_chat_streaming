@@ -17,36 +17,36 @@ def __(mo):
 
 @app.cell
 def __(pg):
-    _conn_str = 'user=admin password=quest host=127.0.0.1 port=8812 dbname=qdb'
+    conn_str = 'user=admin password=quest host=10.128.0.5 port=8812 dbname=qdb'
+    # conn_str = 'user=admin password=quest host=127.0.0.1 port=8812 dbname=qdb'
 
-    with pg.connect(_conn_str, autocommit=True) as _connection:
+    with pg.connect(conn_str, autocommit=True) as _connection:
         with _connection.cursor() as _cur:
             _query = f'''
-            select distinct broadcaster
-            from refresh_tokens
+            select distinct broadcaster_user_name
+            from messages
             '''
             _cur.execute(_query)
             _records = _cur.fetchall()
             streamers = [_record[0] for _record in _records]
     # streamers
-    return (streamers,)
+    return conn_str, streamers
 
 
 @app.cell
 def __(mo, streamers):
     refresh = mo.ui.refresh(default_interval=10)
-    streamer = mo.ui.dropdown(options=streamers,label='Streamer',value='wafflesmacker')
+    streamer = mo.ui.dropdown(options=streamers,label='Streamer')
     mo.vstack([mo.md('Select the streamer you would like to see the chat for'),
     mo.hstack([streamer,refresh])])
     return refresh, streamer
 
 
 @app.cell
-def __(pg, pl, refresh, streamer):
-    _conn_str = 'user=admin password=quest host=127.0.0.1 port=8812 dbname=qdb'
+def __(conn_str, pg, pl, refresh, streamer):
     _columns = ['broadcaster','chatter','message','message_id','color','timestamp']
     refresh
-    with pg.connect(_conn_str, autocommit=True) as _connection:
+    with pg.connect(conn_str, autocommit=True) as _connection:
         with _connection.cursor() as _cur:
             _query = f'''
             select broadcaster_user_name,chatter_user_name,message,message_id,color,timestamp
@@ -158,10 +158,30 @@ def __(alt, chat_message, datetime, df, mo, pl, timeframe3, timezone):
     _chart = _df.plot.bar(x='chats',y=alt.Y('chatter').sort('-x'),color = 'chatter')
     _chart = mo.ui.altair_chart(_chart)
     mo.vstack([mo.md(f'''**{chat_message.value.lower()}**
-    has appeared in chat 
+    has appeared in chat
     **{_total_count}**
     times in the last {timeframe3.value} hours'''),_chart])
     return
+
+
+@app.cell
+def __(mo):
+    form = mo.ui.text(label="Your Twitch username").form()
+    return (form,)
+
+
+@app.cell
+def __(form, mo):
+    url = f'https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=xrk9xqkcj01qet2hwv50oziq4vqdpw&redirect_uri=https://us-central1-rare-mender-353319.cloudfunctions.net/start_eventsub&scope=channel%3Abot&state={form.value}'
+
+    if form.value:
+        link = mo.md(f'[Link to authorize app]({url})')
+    else:
+        link= mo.md('Please input Twitch username')
+
+
+    mo.vstack([mo.md('Want to see data for you stream? Enter your twitch username to authorize this app to get it.'),form,link],align='center')
+    return link, url
 
 
 @app.cell
@@ -171,7 +191,8 @@ def __():
     import polars as pl
     from datetime import datetime, timedelta, timezone
     import altair as alt
-    return alt, datetime, mo, pg, pl, timedelta, timezone
+    import webbrowser
+    return alt, datetime, mo, pg, pl, timedelta, timezone, webbrowser
 
 
 if __name__ == "__main__":
